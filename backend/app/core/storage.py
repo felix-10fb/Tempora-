@@ -8,6 +8,7 @@ UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../u
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"}
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB hard limit
 MIME_TO_EXT = {
     "image/jpeg": ".jpg",
     "image/jpg": ".jpg",
@@ -34,6 +35,11 @@ def save_base64_image(data_url: str) -> str:
         mime_type = match.group(1).lower()
         base64_data = match.group(2)
 
+        # Guard: base64 string length ~ 4/3 * raw bytes
+        if len(base64_data) > MAX_UPLOAD_BYTES * 4 // 3:
+            print(f"[!] Rejected oversized base64 image ({len(base64_data)} chars)")
+            return data_url
+
         ext = MIME_TO_EXT.get(mime_type, ".jpg")
         filename = f"{uuid.uuid4().hex}{ext}"
         filepath = os.path.join(UPLOAD_DIR, filename)
@@ -50,6 +56,7 @@ def save_base64_image(data_url: str) -> str:
 async def save_uploaded_file(file: UploadFile) -> str:
     """
     Save an UploadFile to the uploads directory and return '/uploads/<filename>'.
+    Rejects files exceeding MAX_UPLOAD_BYTES.
     """
     original_ext = os.path.splitext(file.filename or "")[1].lower()
     ext = original_ext if original_ext in ALLOWED_EXTENSIONS else MIME_TO_EXT.get(file.content_type or "", ".jpg")
@@ -57,6 +64,9 @@ async def save_uploaded_file(file: UploadFile) -> str:
     filepath = os.path.join(UPLOAD_DIR, filename)
 
     content = await file.read()
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise ValueError(f"File too large: {len(content)} bytes (max {MAX_UPLOAD_BYTES})")
+
     with open(filepath, "wb") as f:
         f.write(content)
 

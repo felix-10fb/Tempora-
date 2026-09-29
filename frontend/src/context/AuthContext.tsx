@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { User } from '../types';
 import { api } from '../services/api';
 
@@ -22,6 +22,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  // Define logout first so it's stable when referenced inside useEffect
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('tempora_token');
+    localStorage.removeItem('tempora_user');
+  }, []);
+
   useEffect(() => {
     const savedToken = localStorage.getItem('tempora_token');
     const savedUser = localStorage.getItem('tempora_user');
@@ -30,27 +38,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       try {
         setToken(savedToken);
         setUser(JSON.parse(savedUser));
-        // Verify with backend
+        // Silently verify token is still valid with backend
         api.getMe()
           .then((currentUser) => {
             setUser(currentUser);
             localStorage.setItem('tempora_user', JSON.stringify(currentUser));
           })
-          .catch(() => {
-            // Token expired or invalid
-            logout();
-          })
+          .catch(() => logout())
           .finally(() => setIsLoading(false));
       } catch {
         logout();
         setIsLoading(false);
       }
     } else {
-      // No saved session — user must log in
       setUser(null);
       setIsLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   const login = async (email: string, pass: string) => {
     const data = await api.login(email, pass);
@@ -74,13 +78,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(data.user);
     localStorage.setItem('tempora_token', data.access_token);
     localStorage.setItem('tempora_user', JSON.stringify(data.user));
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('tempora_token');
-    localStorage.removeItem('tempora_user');
   };
 
   const switchRole = (role: 'CUSTOMER' | 'OWNER' | 'ADMIN') => {

@@ -48,8 +48,9 @@ if not use_sqlite:
             db_url,
             pool_pre_ping=True,
             pool_recycle=300,
-            pool_size=10,
-            max_overflow=20,
+            pool_size=5,
+            max_overflow=10,
+            pool_timeout=30,
             connect_args={
                 "connect_timeout": 15,
                 "keepalives": 1,

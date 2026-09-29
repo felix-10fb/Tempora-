@@ -19,7 +19,7 @@ class ApiService {
     };
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}, signal?: AbortSignal): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     const headers = {
       ...this.getHeaders(),
@@ -27,8 +27,8 @@ class ApiService {
     };
 
     try {
-      const response = await fetch(url, { ...options, headers });
-      
+      const response = await fetch(url, { ...options, headers, signal });
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         let message = errorData.message || errorData.detail;
@@ -44,11 +44,33 @@ class ApiService {
 
       return await response.json();
     } catch (err: any) {
+      if (err.name === 'AbortError') throw err; // propagate cancellation silently
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
         console.warn(`[TEMPORA API] Cannot reach backend at ${url}. Ensure FastAPI is running on port 8000.`);
         throw new Error(`Cannot reach server at ${url}. Ensure the FastAPI backend is running on port 8000.`);
       }
       console.error(`API Error on [${options.method || 'GET'} ${endpoint}]:`, err);
+      throw err;
+    }
+  }
+
+  /** Shared multipart upload helper — avoids duplicating auth + error logic */
+  private async _fetchUpload<T>(url: string, body: FormData): Promise<T> {
+    const token = localStorage.getItem('tempora_token');
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    try {
+      const response = await fetch(url, { method: 'POST', headers, body });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.message || err.detail || `Upload failed with status ${response.status}`);
+      }
+      return await response.json();
+    } catch (err: any) {
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        throw new Error(`Cannot reach server at ${url}. Ensure the FastAPI backend is running on port 8000.`);
+      }
       throw err;
     }
   }
@@ -124,66 +146,14 @@ class ApiService {
   async uploadImage(file: File): Promise<{ url: string; filename?: string }> {
     const formData = new FormData();
     formData.append('file', file);
-
-    const token = localStorage.getItem('tempora_token');
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const url = `${API_BASE_URL}/upload`;
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.detail || `Upload failed with status ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (err: any) {
-      if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        throw new Error(`Cannot reach server at ${url}. Ensure the FastAPI backend is running on port 8000.`);
-      }
-      throw err;
-    }
+    return this._fetchUpload(`${API_BASE_URL}/upload`, formData);
   }
 
   async uploadMultipleImages(files: File[]): Promise<string[]> {
     const formData = new FormData();
     files.forEach(f => formData.append('files', f));
-
-    const token = localStorage.getItem('tempora_token');
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const url = `${API_BASE_URL}/upload/multiple`;
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.detail || `Upload failed with status ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.urls || [];
-    } catch (err: any) {
-      if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        throw new Error(`Cannot reach server at ${url}. Ensure the FastAPI backend is running on port 8000.`);
-      }
-      throw err;
-    }
+    const data = await this._fetchUpload<{ urls: string[] }>(`${API_BASE_URL}/upload/multiple`, formData);
+    return data.urls || [];
   }
 
   // ----------------- Search -----------------
@@ -210,15 +180,13 @@ class ApiService {
   }
 
   async getClothingLook(occasion: string = 'Job Interview', gender: string = 'Unisex', budget: number = 1500): Promise<any> {
-    return this.request(`/ai/clothing-look?occasion=${encodeURIComponent(occasion)}&gender=${encodeURIComponent(gender)}&budget=${budget}`, {
-      method: 'POST'
-    });
+    const p = new URLSearchParams({ occasion, gender, budget: String(budget) });
+    return this.request(`/ai/clothing-look?${p}`, { method: 'POST' });
   }
 
   async getFurnitureHome(homeType: string = '1BHK', durationMonths: number = 6, style: string = 'Modern', budget: number = 5000): Promise<any> {
-    return this.request(`/ai/furniture-home?home_type=${encodeURIComponent(homeType)}&duration_months=${durationMonths}&style=${encodeURIComponent(style)}&budget=${budget}`, {
-      method: 'POST'
-    });
+    const p = new URLSearchParams({ home_type: homeType, duration_months: String(durationMonths), style, budget: String(budget) });
+    return this.request(`/ai/furniture-home?${p}`, { method: 'POST' });
   }
 
   async inspectItem(data: { listing_id: string; image_urls: string[]; inspection_type?: string; booking_id?: string }): Promise<AIInspectionResponse> {

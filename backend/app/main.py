@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -14,13 +15,25 @@ from backend.app.routers import (
     reviews, ai, wishlists, chat, notifications, owner, admin, maps, upload
 )
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup: verify DB is reachable. Shutdown: nothing needed (SQLAlchemy manages pool)."""
+    from backend.app.core.database import check_db_health
+    ok, status_msg, db_type = check_db_health()
+    if ok:
+        print(f"[TEMPORA] Startup OK — DB: {db_type} ({status_msg})")
+    else:
+        print(f"[TEMPORA] WARNING — DB health check failed at startup: {status_msg}")
+    yield
+
 # Initialize FastAPI application
 app = FastAPI(
     title=settings.PROJECT_NAME,
     description="Hyperlocal temporary-ownership marketplace backend. 'Own Less. Live More.'",
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan
 )
 
 # Configure CORS
