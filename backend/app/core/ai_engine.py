@@ -1,7 +1,7 @@
 import re
 import math
 from typing import Dict, Any, List, Optional
-from backend.app.core.config import settings
+from app.core.config import settings
 
 class AIEngine:
     """

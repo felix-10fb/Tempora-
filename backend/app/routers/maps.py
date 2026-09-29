@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
 
-from backend.app.core.ai_engine import AIEngine
-from backend.app.core.config import settings
-from backend.app.schemas.schemas import DeliveryCalculateRequest, DeliveryCalculateResponse
+from app.core.ai_engine import AIEngine
+from app.core.config import settings
+from app.schemas.schemas import DeliveryCalculateRequest, DeliveryCalculateResponse
 
 router = APIRouter(prefix="/maps", tags=["Maps & Delivery"])
 

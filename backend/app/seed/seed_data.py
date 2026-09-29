@@ -6,9 +6,9 @@ from datetime import datetime, timedelta, timezone
 # Ensure project root is in path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 
-from backend.app.core.database import SessionLocal, engine, Base
-from backend.app.core.security import hash_password
-from backend.app.models.models import (
+from app.core.database import SessionLocal, engine, Base
+from app.core.security import hash_password
+from app.models.models import (
     User, UserPreference, Address, Category, Listing, ListingImage,
     Booking, Review, Dispute, Notification, UserRole, ListingStatus,
     BookingStatus, PaymentStatus, DisputeStatus

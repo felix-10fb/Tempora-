@@ -4,14 +4,14 @@ from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any
 
-from backend.app.core.database import get_db
-from backend.app.models.models import (
+from app.core.database import get_db
+from app.models.models import (
     User, Listing, Booking, Review, BookingStatus, ListingStatus
 )
-from backend.app.schemas.schemas import (
+from app.schemas.schemas import (
     OwnerDashboardStats, ListingResponse, BookingResponse
 )
-from backend.app.routers.auth import get_current_user
+from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/owner", tags=["Owner Platform"])
 

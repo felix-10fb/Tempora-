@@ -3,11 +3,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from typing import List, Optional
 
-from backend.app.core.database import get_db
-from backend.app.core.ai_engine import AIEngine
-from backend.app.models.models import Listing, User, ListingStatus
-from backend.app.schemas.schemas import ListingResponse
-from backend.app.routers.maps import TAMIL_NADU_PINCODES
+from app.core.database import get_db
+from app.core.ai_engine import AIEngine
+from app.models.models import Listing, User, ListingStatus
+from app.schemas.schemas import ListingResponse
+from app.routers.maps import TAMIL_NADU_PINCODES
 
 router = APIRouter(prefix="/search", tags=["Search"])
 

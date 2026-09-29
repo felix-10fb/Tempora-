@@ -4,10 +4,10 @@ from sqlalchemy import func
 from typing import List
 import uuid
 
-from backend.app.core.database import get_db
-from backend.app.models.models import Review, Listing, User
-from backend.app.schemas.schemas import ReviewCreate, ReviewResponse
-from backend.app.routers.auth import get_current_user
+from app.core.database import get_db
+from app.models.models import Review, Listing, User
+from app.schemas.schemas import ReviewCreate, ReviewResponse
+from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 

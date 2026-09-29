@@ -4,7 +4,7 @@ from sqlalchemy import (
     Column, String, Text, Boolean, Integer, Float, ForeignKey, DateTime, JSON, Enum, Index
 )
 from sqlalchemy.orm import relationship
-from backend.app.core.database import Base
+from app.core.database import Base
 
 def generate_uuid():
     return str(uuid.uuid4())

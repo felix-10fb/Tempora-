@@ -2,9 +2,9 @@ import os
 from typing import List, Optional
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from pydantic import BaseModel
-from backend.app.core.storage import save_uploaded_file, save_base64_image, ALLOWED_EXTENSIONS
-from backend.app.routers.auth import get_current_user
-from backend.app.models.models import User
+from app.core.storage import save_uploaded_file, save_base64_image, ALLOWED_EXTENSIONS
+from app.routers.auth import get_current_user
+from app.models.models import User
 
 router = APIRouter(prefix="/upload", tags=["Uploads"])
 

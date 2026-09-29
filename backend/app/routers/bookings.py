@@ -3,13 +3,13 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 import uuid
 
-from backend.app.core.database import get_db
-from backend.app.core.config import settings
-from backend.app.models.models import (
+from app.core.database import get_db
+from app.core.config import settings
+from app.models.models import (
     Booking, Listing, User, Notification, BookingStatus, PaymentStatus, DeliveryOrder
 )
-from backend.app.schemas.schemas import BookingCreate, BookingResponse
-from backend.app.routers.auth import get_current_user
+from app.schemas.schemas import BookingCreate, BookingResponse
+from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
 

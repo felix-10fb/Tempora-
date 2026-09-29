@@ -4,14 +4,14 @@ from datetime import timedelta
 from typing import Dict
 import uuid
 
-from backend.app.core.database import get_db
-from backend.app.core.config import settings
-from backend.app.core.security import (
+from app.core.database import get_db
+from app.core.config import settings
+from app.core.security import (
     hash_password, verify_password, create_access_token, create_refresh_token,
     decode_token, security
 )
-from backend.app.models.models import User, UserPreference, UserRole
-from backend.app.schemas.schemas import (
+from app.models.models import User, UserPreference, UserRole
+from app.schemas.schemas import (
     RegisterRequest, LoginRequest, GoogleAuthRequest, RefreshTokenRequest,
     Token, UserResponse
 )

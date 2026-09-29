@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 import uuid
 
-from backend.app.core.database import get_db
-from backend.app.core.ai_engine import AIEngine
-from backend.app.models.models import Listing, ItemInspection, ListingStatus
-from backend.app.schemas.schemas import (
+from app.core.database import get_db
+from app.core.ai_engine import AIEngine
+from app.models.models import Listing, ItemInspection, ListingStatus
+from app.schemas.schemas import (
     AISearchRequest, AISetupBundleResponse, AISetupBundleItem,
     AIInspectionRequest, AIInspectionResponse, ListingResponse
 )

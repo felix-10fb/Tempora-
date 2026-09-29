@@ -5,15 +5,15 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Dict, Any
 import uuid
 
-from backend.app.core.database import get_db
-from backend.app.models.models import (
+from app.core.database import get_db
+from app.models.models import (
     User, Listing, Booking, Dispute, Payment, AdminLog, Category,
     UserRole, ListingStatus, BookingStatus, DisputeStatus
 )
-from backend.app.schemas.schemas import (
+from app.schemas.schemas import (
     AdminDashboardStats, UserResponse, ListingResponse, DisputeResponse
 )
-from backend.app.routers.auth import get_current_user
+from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/admin", tags=["Admin Portal"])
 

@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 import uuid
 
-from backend.app.core.database import get_db
-from backend.app.models.models import Payment, Booking, PaymentStatus, BookingStatus, User
-from backend.app.schemas.schemas import PaymentCreate, PaymentResponse
-from backend.app.routers.auth import get_current_user
+from app.core.database import get_db
+from app.models.models import Payment, Booking, PaymentStatus, BookingStatus, User
+from app.schemas.schemas import PaymentCreate, PaymentResponse
+from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
 

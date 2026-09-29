@@ -4,15 +4,15 @@ from sqlalchemy import or_
 from typing import List, Optional
 import uuid
 
-from backend.app.core.database import get_db
-from backend.app.models.models import (
+from app.core.database import get_db
+from app.models.models import (
     Listing, ListingImage, Category, User, UserRole, ListingStatus
 )
-from backend.app.schemas.schemas import (
+from app.schemas.schemas import (
     ListingCreate, ListingUpdate, ListingResponse
 )
-from backend.app.routers.auth import get_current_user
-from backend.app.core.storage import save_base64_image
+from app.routers.auth import get_current_user
+from app.core.storage import save_base64_image
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
 

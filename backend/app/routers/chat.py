@@ -4,12 +4,12 @@ from sqlalchemy import or_, and_
 from typing import List
 import uuid
 
-from backend.app.core.database import get_db
-from backend.app.models.models import Conversation, Message, User, Listing
-from backend.app.schemas.schemas import (
+from app.core.database import get_db
+from app.models.models import Conversation, Message, User, Listing
+from app.schemas.schemas import (
     MessageCreate, MessageResponse, ConversationResponse
 )
-from backend.app.routers.auth import get_current_user
+from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
 

@@ -7,10 +7,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from fastapi.staticfiles import StaticFiles
 
-from backend.app.core.config import settings
-from backend.app.core.database import engine, Base
-from backend.app.core.storage import UPLOAD_DIR
-from backend.app.routers import (
+from app.core.config import settings
+from app.core.database import engine, Base
+from app.core.storage import UPLOAD_DIR
+from app.routers import (
     auth, users, listings, search, bookings, payments,
     reviews, ai, wishlists, chat, notifications, owner, admin, maps, upload
 )
@@ -18,7 +18,7 @@ from backend.app.routers import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup: verify DB is reachable. Shutdown: nothing needed (SQLAlchemy manages pool)."""
-    from backend.app.core.database import check_db_health
+    from app.core.database import check_db_health
     ok, status_msg, db_type = check_db_health()
     if ok:
         print(f"[TEMPORA] Startup OK — DB: {db_type} ({status_msg})")
@@ -115,7 +115,7 @@ app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/api/health")
 def health_check():
-    from backend.app.core.database import check_db_health
+    from app.core.database import check_db_health
     db_ok, db_status, db_type = check_db_health()
     return {
         "status": "healthy" if db_ok else "degraded",

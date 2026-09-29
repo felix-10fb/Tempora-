@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
-from backend.app.core.database import get_db
-from backend.app.models.models import Wishlist, WishlistItem, Listing, User
-from backend.app.schemas.schemas import ListingResponse
-from backend.app.routers.auth import get_current_user
+from app.core.database import get_db
+from app.models.models import Wishlist, WishlistItem, Listing, User
+from app.schemas.schemas import ListingResponse
+from app.routers.auth import get_current_user
 
 router = APIRouter(prefix="/wishlists", tags=["Wishlist"])
 
