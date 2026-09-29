@@ -48,48 +48,90 @@ export const CustomerDashboardPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       
-      {/* User Welcome Banner */}
-      <div className="p-8 rounded-3xl glass-panel border border-slate-200 dark:border-slate-800 shadow-sm mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
-          <img
-            src={user?.profile_image || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"}
-            alt={user?.name || "User"}
-            className="w-16 h-16 rounded-2xl object-cover ring-4 ring-emerald-500/30"
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white">
-                Welcome back, {user?.name}
-              </h1>
-              <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> Verified Member
-              </span>
+      {/* ━━━ PROFESSIONAL DASHBOARD HEADER ━━━ */}
+      <div className="mb-10 space-y-6">
+        {/* User Welcome */}
+        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white shadow-glow-emerald relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/3 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
+          
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <img
+                src={user?.profile_image || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"}
+                alt={user?.name || "User"}
+                className="w-14 h-14 rounded-2xl object-cover ring-4 ring-white/20"
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-display font-extrabold text-2xl sm:text-3xl">
+                    Welcome back, {user?.name?.split(' ')[0]}
+                  </h1>
+                  <span className="bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 border border-white/20">
+                    <ShieldCheck className="w-3 h-3" /> Verified
+                  </span>
+                </div>
+                <p className="text-sm text-emerald-100 mt-0.5">
+                  {user?.email} • Trust Score: <strong className="text-white">{user?.trust_score || 94}/100</strong>
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Active Member • Trust Score: <strong className="text-emerald-600 dark:text-emerald-400">{user?.trust_score || 94}/100</strong>
-            </p>
+
+            <div className="flex items-center gap-2">
+              <button onClick={() => navigate('/search')} className="px-4 py-2.5 rounded-xl text-xs font-bold bg-white text-emerald-700 hover:bg-emerald-50 transition shadow-sm">
+                Browse Marketplace
+              </button>
+              <button onClick={() => navigate('/add-listing')} className="px-4 py-2.5 rounded-xl text-xs font-bold bg-white/15 text-white border border-white/20 hover:bg-white/25 transition backdrop-blur-sm">
+                List & Earn
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Quick Stats Pill */}
-        <div className="flex items-center gap-4 border-t md:border-t-0 md:border-l border-slate-200 dark:border-slate-800 pt-4 md:pt-0 md:pl-8">
-          <div>
-            <span className="text-xs text-slate-400">Active Rentals</span>
-            <p className="font-display font-black text-2xl text-slate-900 dark:text-white">
-              {activeRentals.length}
-            </p>
+        {/* Dashboard Stat Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
+                <Package className="w-5 h-5 text-emerald-600" />
+              </span>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">Active</span>
+            </div>
+            <p className="font-display font-black text-3xl text-slate-900 dark:text-white">{activeRentals.length}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Active Rentals</p>
           </div>
-          <div>
-            <span className="text-xs text-slate-400">Saved Wishlist</span>
-            <p className="font-display font-black text-2xl text-slate-900 dark:text-white">
-              {wishlist.length}
-            </p>
+
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center">
+                <Heart className="w-5 h-5 text-rose-500" />
+              </span>
+              <span className="text-xs font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-full">{wishlist.length} saved</span>
+            </div>
+            <p className="font-display font-black text-3xl text-slate-900 dark:text-white">{wishlist.length}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Wishlist Items</p>
           </div>
-          <div>
-            <span className="text-xs text-slate-400">Security Deposit Escrow</span>
-            <p className="font-display font-black text-2xl text-emerald-600 dark:text-emerald-400">
-              ₹4,000
-            </p>
+
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-violet-600" />
+              </span>
+              <span className="text-xs font-bold text-violet-600 bg-violet-50 dark:bg-violet-950/40 px-2 py-0.5 rounded-full">Escrow</span>
+            </div>
+            <p className="font-display font-black text-3xl text-emerald-600 dark:text-emerald-400">₹4,000</p>
+            <p className="text-xs text-slate-500 mt-0.5">Security Deposit</p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-amber-500" />
+              </span>
+              <span className="text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full">Savings</span>
+            </div>
+            <p className="font-display font-black text-3xl text-slate-900 dark:text-white">₹12,400</p>
+            <p className="text-xs text-slate-500 mt-0.5">Total Saved vs Buying</p>
           </div>
         </div>
       </div>

@@ -11,9 +11,7 @@ export const Footer: React.FC = () => {
           {/* Col 1: Brand & Philosophy */}
           <div className="md:col-span-2">
             <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-glow-emerald">
-                <span className="text-white font-extrabold text-lg font-display">T</span>
-              </div>
+              <img src="/tempora-logo.jpg" alt="Tempora" className="w-10 h-10 rounded-xl shadow-glow-emerald object-cover" />
               <span className="font-display font-extrabold text-2xl tracking-tight text-slate-900 dark:text-white">
                 TEMPORA
               </span>

@@ -18,6 +18,7 @@ import { AddListingWizardPage } from './pages/AddListingWizardPage';
 import { ChatPage } from './pages/ChatPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { WishlistPage } from './pages/WishlistPage';
+import { AuthPage } from './pages/AuthPage';
 
 // Admin Portal Pages
 import { AdminLayout } from './pages/admin/AdminLayout';
@@ -31,8 +32,9 @@ import { AdminAnalyticsPage } from './pages/admin/AdminAnalyticsPage';
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/admin');
+  const isAuthPage = location.pathname === '/auth';
 
-  if (isAdmin) {
+  if (isAdmin || isAuthPage) {
     return <>{children}</>;
   }
 
@@ -54,6 +56,7 @@ export const App: React.FC = () => {
             <Routes>
               {/* Marketplace Public Routes */}
               <Route path="/" element={<HomePage />} />
+              <Route path="/auth" element={<AuthPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/listing/:id" element={<ListingDetailPage />} />
               <Route path="/setup-builder" element={<AISetupBuilderPage />} />

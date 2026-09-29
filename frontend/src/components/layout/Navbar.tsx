@@ -37,9 +37,7 @@ export const Navbar: React.FC = () => {
           {/* Brand Logo */}
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-3 group">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-emerald-400 flex items-center justify-center shadow-glow-emerald group-hover:scale-105 transition-transform duration-300">
-                <span className="text-white font-extrabold text-xl font-display tracking-wider">T</span>
-              </div>
+              <img src="/tempora-logo.jpg" alt="Tempora" className="w-11 h-11 rounded-2xl shadow-glow-emerald group-hover:scale-105 transition-transform duration-300 object-cover" />
               <div className="flex flex-col">
                 <span className="font-display font-extrabold text-2xl tracking-tight text-slate-900 dark:text-white">
                   TEMPORA
