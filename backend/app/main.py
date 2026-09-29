@@ -4,11 +4,14 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from fastapi.staticfiles import StaticFiles
+
 from backend.app.core.config import settings
 from backend.app.core.database import engine, Base
+from backend.app.core.storage import UPLOAD_DIR
 from backend.app.routers import (
     auth, users, listings, search, bookings, payments,
-    reviews, ai, wishlists, chat, notifications, owner, admin, maps
+    reviews, ai, wishlists, chat, notifications, owner, admin, maps, upload
 )
 
 # Initialize FastAPI application
@@ -45,15 +48,25 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    error_messages = []
+    for err in exc.errors():
+        loc = [str(l) for l in err.get("loc", []) if str(l) != "body"]
+        field_name = ".".join(loc) if loc else "field"
+        msg = err.get("msg", "Invalid value")
+        error_messages.append(f"{field_name}: {msg}")
+    
+    summary = "; ".join(error_messages) if error_messages else "Validation error in request payload"
+    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "success": False,
-            "message": "Validation error in request payload",
+            "message": summary,
             "errors": exc.errors(),
             "code": "VALIDATION_ERROR"
         }
     )
+
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
@@ -82,6 +95,10 @@ app.include_router(notifications.router, prefix="/api")
 app.include_router(owner.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(maps.router, prefix="/api")
+app.include_router(upload.router, prefix="/api")
+
+# Static files for uploaded images
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 @app.get("/api/health")
 def health_check():

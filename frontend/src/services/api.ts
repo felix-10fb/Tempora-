@@ -5,7 +5,11 @@ import {
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || (
-  typeof window !== 'undefined' && (window.location.port === '5173' || window.location.port === '5174')
+  typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.port !== ''
+  )
     ? '/api'
     : 'http://127.0.0.1:8000/api'
 );
@@ -31,13 +35,22 @@ class ApiService {
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || errorData.detail || `Request failed with status ${response.status}`);
+        let message = errorData.message || errorData.detail;
+        if (errorData.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+          const fieldMsgs = errorData.errors.map((e: any) => {
+            const loc = (e.loc || []).filter((l: any) => l !== 'body').join('.');
+            return loc ? `${loc}: ${e.msg}` : e.msg;
+          }).join('; ');
+          if (fieldMsgs) message = fieldMsgs;
+        }
+        throw new Error(message || `Request failed with status ${response.status}`);
       }
 
       return await response.json();
     } catch (err: any) {
       if (err.name === 'TypeError' && err.message.includes('fetch')) {
         console.warn(`[TEMPORA API] Cannot reach backend at ${url}. Ensure FastAPI is running on port 8000.`);
+        throw new Error(`Cannot reach server at ${url}. Ensure the FastAPI backend is running on port 8000.`);
       }
       console.error(`API Error on [${options.method || 'GET'} ${endpoint}]:`, err);
       throw err;
@@ -109,6 +122,72 @@ class ApiService {
     return this.request(`/listings/${id}`, {
       method: 'DELETE'
     });
+  }
+
+  // ----------------- Uploads -----------------
+  async uploadImage(file: File): Promise<{ url: string; filename?: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('tempora_token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const url = `${API_BASE_URL}/upload`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || `Upload failed with status ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (err: any) {
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        throw new Error(`Cannot reach server at ${url}. Ensure the FastAPI backend is running on port 8000.`);
+      }
+      throw err;
+    }
+  }
+
+  async uploadMultipleImages(files: File[]): Promise<string[]> {
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+
+    const token = localStorage.getItem('tempora_token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const url = `${API_BASE_URL}/upload/multiple`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || errorData.detail || `Upload failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.urls || [];
+    } catch (err: any) {
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        throw new Error(`Cannot reach server at ${url}. Ensure the FastAPI backend is running on port 8000.`);
+      }
+      throw err;
+    }
   }
 
   // ----------------- Search -----------------

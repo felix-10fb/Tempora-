@@ -12,6 +12,7 @@ from backend.app.schemas.schemas import (
     ListingCreate, ListingUpdate, ListingResponse
 )
 from backend.app.routers.auth import get_current_user
+from backend.app.core.storage import save_base64_image
 
 router = APIRouter(prefix="/listings", tags=["Listings"])
 
@@ -122,11 +123,12 @@ def create_listing(
     db.add(new_listing)
     db.flush()
 
-    for idx, img_url in enumerate(data.images):
+    for idx, raw_img in enumerate(data.images):
+        saved_img = save_base64_image(raw_img)
         img = ListingImage(
             id=str(uuid.uuid4()),
             listing_id=new_listing.id,
-            image_url=img_url,
+            image_url=saved_img,
             sort_order=idx
         )
         db.add(img)
@@ -150,8 +152,23 @@ def update_listing(
     if listing.owner_id != current_user.id and current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
         raise HTTPException(status_code=403, detail="Not authorized to edit this listing")
 
-    for field, val in data.model_dump(exclude_unset=True).items():
+    update_data = data.model_dump(exclude_unset=True)
+    images_data = update_data.pop("images", None)
+
+    for field, val in update_data.items():
         setattr(listing, field, val)
+
+    if images_data is not None:
+        db.query(ListingImage).filter(ListingImage.listing_id == listing.id).delete()
+        for idx, raw_img in enumerate(images_data):
+            saved_img = save_base64_image(raw_img)
+            img = ListingImage(
+                id=str(uuid.uuid4()),
+                listing_id=listing.id,
+                image_url=saved_img,
+                sort_order=idx
+            )
+            db.add(img)
 
     db.commit()
     db.refresh(listing)

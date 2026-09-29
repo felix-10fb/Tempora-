@@ -52,7 +52,7 @@ class User(Base):
     phone = Column(String(25), nullable=True)
     password_hash = Column(String(255), nullable=True)
     role = Column(String(20), default=UserRole.CUSTOMER, index=True)
-    profile_image = Column(String(500), nullable=True)
+    profile_image = Column(Text, nullable=True)
     is_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     trust_score = Column(Integer, default=85)
@@ -159,7 +159,7 @@ class ListingImage(Base):
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     listing_id = Column(String(36), ForeignKey("listings.id", ondelete="CASCADE"), nullable=False, index=True)
-    image_url = Column(String(500), nullable=False)
+    image_url = Column(Text, nullable=False)
     sort_order = Column(Integer, default=0)
 
     listing = relationship("Listing", back_populates="images")

@@ -72,6 +72,7 @@ export const App: React.FC = () => {
               {/* Owner Portal */}
               <Route path="/owner" element={<OwnerDashboardPage />} />
               <Route path="/add-listing" element={<AddListingWizardPage />} />
+              <Route path="/list-item" element={<AddListingWizardPage />} />
 
               {/* Admin Portal (Dedicated layout & route) */}
               <Route path="/admin" element={<AdminLayout />}>

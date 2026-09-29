@@ -63,4 +63,6 @@ frontend/dist/
 frontend/build/
 *.db
 *.sqlite3
+uploads/
+backend/uploads/
 

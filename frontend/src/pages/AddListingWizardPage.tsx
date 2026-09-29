@@ -2,18 +2,78 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Upload, Sparkles, Check, ArrowRight, ArrowLeft,
-  DollarSign, MapPin, ShieldCheck, Image as ImageIcon
+  DollarSign, MapPin, ShieldCheck, Image as ImageIcon, Loader2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
+
+// Helper to compress images on the client to avoid sending huge multi-megabyte payloads
+const compressImageFile = (file: File, maxDimension = 1280, quality = 0.85): Promise<{ file: File; dataUrl: string }> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve({ file, dataUrl });
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve({ file: compressedFile, dataUrl: compressedDataUrl });
+            } else {
+              resolve({ file, dataUrl: compressedDataUrl });
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+      img.onerror = () => resolve({ file, dataUrl });
+      img.src = dataUrl;
+    };
+    reader.onerror = () => resolve({ file, dataUrl: '' });
+    reader.readAsDataURL(file);
+  });
+};
 
 export const AddListingWizardPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast, success, error } = useToast();
+  const { user } = useAuth();
 
   const [step, setStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isUploadingImages, setIsUploadingImages] = useState<boolean>(false);
 
   // Form State with Multi-File Selection
   const [images, setImages] = useState<string[]>([
@@ -29,21 +89,50 @@ export const AddListingWizardPage: React.FC = () => {
   const [location, setLocation] = useState<string>("Adyar, Chennai");
   const [deliveryAvailable, setDeliveryAvailable] = useState<boolean>(true);
 
-  // Handle local file selection
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle local file selection with client compression and resilient upload
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     const fileList = Array.from(e.target.files);
 
-    fileList.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setImages((prev) => [...prev, event.target!.result as string]);
+    setIsUploadingImages(true);
+    let uploadedCount = 0;
+
+    for (const file of fileList) {
+      try {
+        // 1. Client-side compression
+        const { file: compressedFile, dataUrl } = await compressImageFile(file);
+
+        // 2. Try direct upload to server
+        let uploaded = false;
+        try {
+          const uploadRes = await api.uploadImage(compressedFile);
+          if (uploadRes && uploadRes.url) {
+            setImages((prev) => [...prev, uploadRes.url]);
+            uploaded = true;
+            uploadedCount++;
+          }
+        } catch (uploadErr) {
+          console.warn("Direct upload endpoint failed, falling back to compressed payload:", uploadErr);
         }
-      };
-      reader.readAsDataURL(file);
-    });
-    toast(`Added ${fileList.length} image(s) from your device!`, "success");
+
+        // 3. Fallback to lightweight compressed base64 (backend automatically saves it as hosted file)
+        if (!uploaded && dataUrl) {
+          setImages((prev) => [...prev, dataUrl]);
+          uploadedCount++;
+        }
+      } catch (err) {
+        console.error("Failed to process image file:", err);
+      }
+    }
+
+    setIsUploadingImages(false);
+    if (uploadedCount > 0) {
+      toast(`Added ${uploadedCount} photo(s) successfully!`, "success");
+    } else {
+      toast("Failed to process selected photos. Please try another image.", "error");
+    }
+
+    e.target.value = '';
   };
 
   const removeImage = (indexToRemove: number) => {
@@ -65,12 +154,23 @@ export const AddListingWizardPage: React.FC = () => {
   ];
 
   const handlePublish = async () => {
+    const token = localStorage.getItem('tempora_token');
+    if (!token && !user) {
+      toast("Please sign in to publish your listing", "error");
+      navigate("/auth");
+      return;
+    }
+
     if (!title || !description) {
       toast("Please enter a title and description", "error");
       return;
     }
     if (images.length === 0) {
       toast("Please upload at least one photo of your item", "error");
+      return;
+    }
+    if (isUploadingImages) {
+      toast("Please wait for photos to finish uploading", "error");
       return;
     }
 
@@ -168,6 +268,14 @@ export const AddListingWizardPage: React.FC = () => {
                 Browse Files
               </span>
             </label>
+
+            {/* Upload Progress Indicator */}
+            {isUploadingImages && (
+              <div className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-semibold animate-pulse border border-emerald-500/20">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Optimizing & uploading your photos...</span>
+              </div>
+            )}
 
             {/* Uploaded Photos Preview Grid */}
             <div>
@@ -406,19 +514,30 @@ export const AddListingWizardPage: React.FC = () => {
 
           {step < 5 ? (
             <button
+              disabled={isUploadingImages}
               onClick={() => setStep(step + 1)}
-              className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-sm flex items-center gap-1.5"
+              className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition shadow-sm flex items-center gap-1.5 disabled:opacity-50"
             >
-              <span>Next</span>
-              <ArrowRight className="w-4 h-4" />
+              {isUploadingImages ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <span>Next</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           ) : (
             <button
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploadingImages}
               onClick={handlePublish}
-              className="px-8 py-3 rounded-2xl text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 shadow-glow-emerald transition disabled:opacity-50"
+              className="px-8 py-3 rounded-2xl text-xs font-black text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 shadow-glow-emerald transition disabled:opacity-50 flex items-center gap-2"
             >
-              {isSubmitting ? "Publishing to Marketplace..." : "Publish Listing Live"}
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              <span>{isSubmitting ? "Publishing to Marketplace..." : "Publish Listing Live"}</span>
             </button>
           )}
         </div>

@@ -111,6 +111,7 @@ class ListingUpdate(BaseModel):
     specifications: Optional[Dict[str, Any]] = None
     delivery_available: Optional[bool] = None
     pickup_available: Optional[bool] = None
+    images: Optional[List[str]] = None
 
 class ListingResponse(BaseModel):
     id: str
