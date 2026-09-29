@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Sparkles, Search, PlusCircle, Bell, User as UserIcon,
@@ -9,7 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { AuthModal } from '../auth/AuthModal';
 
 export const Navbar: React.FC = () => {
-  const { user, logout, switchRole, isAdmin, isOwner } = useAuth();
+  const { user, logout, switchRole, isAdmin, isOwner, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isDark, setIsDark] = useState<boolean>(false);
@@ -17,6 +17,16 @@ export const Navbar: React.FC = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+
+  // Automatically pop up login modal when webpage opens if unauthenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      const timer = setTimeout(() => {
+        setIsAuthModalOpen(true);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, user]);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -106,46 +116,48 @@ export const Navbar: React.FC = () => {
           {/* Right Action Icons & Controls */}
           <div className="flex items-center gap-3">
             
-            {/* Role Switcher Pill (Dev / Testing Utility) */}
-            <div className="relative">
-              <button
-                onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
-                className="hidden lg:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition"
-                title="Switch active role demo preview"
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                <span>Role: {user?.role || 'CUSTOMER'}</span>
-                <ChevronDown className="w-3.5 h-3.5 ml-0.5 text-slate-400" />
-              </button>
+            {/* Role Switcher Pill (Active User) */}
+            {user && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsRoleMenuOpen(!isRoleMenuOpen)}
+                  className="hidden lg:flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition"
+                  title="Switch active role"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span>Role: {user.role}</span>
+                  <ChevronDown className="w-3.5 h-3.5 ml-0.5 text-slate-400" />
+                </button>
 
-              {isRoleMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-elevated border border-slate-200 dark:border-slate-800 p-2 z-50">
-                  <div className="text-[10px] font-bold uppercase text-slate-400 px-3 py-1.5">
-                    Preview As Role
+                {isRoleMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-elevated border border-slate-200 dark:border-slate-800 p-2 z-50">
+                    <div className="text-[10px] font-bold uppercase text-slate-400 px-3 py-1.5">
+                      Switch Active Role
+                    </div>
+                    {(['CUSTOMER', 'OWNER', 'ADMIN'] as const).map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => {
+                          switchRole(r);
+                          setIsRoleMenuOpen(false);
+                          if (r === 'ADMIN') navigate('/admin');
+                          else if (r === 'OWNER') navigate('/owner');
+                          else navigate('/dashboard');
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
+                          user?.role === r
+                            ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <span>{r} View</span>
+                        {user?.role === r && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                      </button>
+                    ))}
                   </div>
-                  {(['CUSTOMER', 'OWNER', 'ADMIN'] as const).map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => {
-                        switchRole(r);
-                        setIsRoleMenuOpen(false);
-                        if (r === 'ADMIN') navigate('/admin');
-                        else if (r === 'OWNER') navigate('/owner');
-                        else navigate('/dashboard');
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
-                        user?.role === r
-                          ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                          : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                      }`}
-                    >
-                      <span>{r} View</span>
-                      {user?.role === r && <Check className="w-3.5 h-3.5 text-emerald-600" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Theme Toggle */}
             <button
@@ -166,124 +178,160 @@ export const Navbar: React.FC = () => {
               <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             </Link>
 
-            {/* List Something CTA */}
-            <Link
-              to="/add-listing"
-              className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-sm"
-            >
-              <PlusCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>List Something</span>
-            </Link>
-
-            {/* User Avatar & Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700"
+            {/* List Item CTA */}
+            {user ? (
+              <Link
+                to="/add-listing"
+                className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl font-semibold text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-sm"
               >
-                <img
-                  src={user?.profile_image || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"}
-                  alt={user?.name || "User"}
-                  className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-500/30"
-                />
+                <PlusCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>List Item</span>
+              </Link>
+            ) : (
+              <button
+                onClick={() => {
+                  setAuthMode('register');
+                  setIsAuthModalOpen(true);
+                }}
+                className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl font-semibold text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition shadow-sm"
+              >
+                <PlusCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>List Item</span>
               </button>
+            )}
 
-              {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-elevated border border-slate-200 dark:border-slate-800 p-2 z-50 animate-slide-up">
-                  <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.email}</p>
-                    
-                    {/* Trust Score Badge */}
-                    <div className="mt-2.5 flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1.5 rounded-lg border border-emerald-200/60 dark:border-emerald-800/60">
-                      <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                        Trust Score
-                      </span>
-                      <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
-                        {user?.trust_score || 94} / 100
-                      </span>
+            {/* User Profile or Sign In Actions */}
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition border border-slate-200 dark:border-slate-700"
+                >
+                  <img
+                    src={user.profile_image || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"}
+                    alt={user.name || "User"}
+                    className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-500/30"
+                  />
+                </button>
+
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-elevated border border-slate-200 dark:border-slate-800 p-2 z-50 animate-slide-up">
+                    <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+                      
+                      {/* Trust Score Badge */}
+                      <div className="mt-2.5 flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1.5 rounded-lg border border-emerald-200/60 dark:border-emerald-800/60">
+                        <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          Trust Score
+                        </span>
+                        <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
+                          {user.trust_score || 94} / 100
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="py-1">
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-                    >
-                      <LayoutDashboard className="w-4 h-4 text-slate-500" />
-                      Customer Dashboard
-                    </Link>
-
-                    {isOwner && (
+                    <div className="py-1">
                       <Link
-                        to="/owner"
+                        to="/dashboard"
                         onClick={() => setIsUserMenuOpen(false)}
                         className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
                       >
-                        <Layers className="w-4 h-4 text-emerald-500" />
-                        Owner Platform
+                        <LayoutDashboard className="w-4 h-4 text-slate-500" />
+                        Customer Dashboard
                       </Link>
-                    )}
 
-                    {isAdmin && (
+                      {isOwner && (
+                        <Link
+                          to="/owner"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                        >
+                          <Layers className="w-4 h-4 text-emerald-500" />
+                          Owner Platform
+                        </Link>
+                      )}
+
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-violet-700 dark:text-violet-300 bg-violet-50/50 dark:bg-violet-950/40 hover:bg-violet-100/60 transition"
+                        >
+                          <ShieldCheck className="w-4 h-4 text-violet-500" />
+                          Admin Operations Portal
+                        </Link>
+                      )}
+
                       <Link
-                        to="/admin"
+                        to="/wishlist"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-violet-700 dark:text-violet-300 bg-violet-50/50 dark:bg-violet-950/40 hover:bg-violet-100/60 transition"
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
                       >
-                        <ShieldCheck className="w-4 h-4 text-violet-500" />
-                        Admin Operations Portal
+                        <Heart className="w-4 h-4 text-rose-500" />
+                        Saved Wishlist
                       </Link>
-                    )}
 
-                    <Link
-                      to="/wishlist"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-                    >
-                      <Heart className="w-4 h-4 text-rose-500" />
-                      Saved Wishlist
-                    </Link>
+                      <Link
+                        to="/chat"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                      >
+                        <MessageSquare className="w-4 h-4 text-blue-500" />
+                        Messages
+                      </Link>
+                    </div>
 
-                    <Link
-                      to="/chat"
-                      onClick={() => setIsUserMenuOpen(false)}
-                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
-                    >
-                      <MessageSquare className="w-4 h-4 text-blue-500" />
-                      Messages
-                    </Link>
+                    <div className="pt-1 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          setAuthMode('login');
+                          setIsAuthModalOpen(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        Switch Account
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="pt-1 border-t border-slate-100 dark:border-slate-800 space-y-1">
-                    <button
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        setAuthMode('login');
-                        setIsAuthModalOpen(true);
-                      }}
-                      className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition"
-                    >
-                      <LogIn className="w-4 h-4" />
-                      Sign In / Switch User
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        logout();
-                        setIsUserMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthModalOpen(true);
+                  }}
+                  className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthMode('register');
+                    setIsAuthModalOpen(true);
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 transition shadow-glow-emerald"
+                >
+                  Get Started
+                </button>
+              </div>
+            )}
 
           </div>
 

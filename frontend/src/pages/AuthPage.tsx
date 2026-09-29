@@ -22,7 +22,7 @@ const TESTIMONIALS = [
 ];
 
 export const AuthPage: React.FC = () => {
-  const { login, register, user } = useAuth();
+  const { login, register, googleLogin, user } = useAuth();
   const { success, error: showError } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -94,17 +94,15 @@ export const AuthPage: React.FC = () => {
     }
   };
 
-  const handleDemoLogin = async (demoEmail: string, demoPass: string, label: string) => {
+  const handleGoogleSignIn = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
-      await login(demoEmail, demoPass);
-      success(`Logged in as demo ${label}!`);
-      if (label === 'Admin') navigate('/admin');
-      else if (label === 'Host') navigate('/owner');
-      else navigate('/dashboard');
+      await googleLogin('mock-google-token', 'user@tempora.io', 'Tempora Member');
+      success('Signed in with Google successfully!');
+      navigate('/dashboard');
     } catch (err: any) {
-      showError(err.message || 'Demo login failed');
+      showError(err.message || 'Google authentication failed');
     } finally {
       setIsSubmitting(false);
     }
@@ -415,12 +413,13 @@ export const AuthPage: React.FC = () => {
             <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
           </div>
 
-          {/* Social / Demo Logins */}
+          {/* Social Logins */}
           <div className="space-y-3">
-            {/* Google button placeholder */}
             <button
               type="button"
-              className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center justify-center gap-3"
+              onClick={handleGoogleSignIn}
+              disabled={isSubmitting}
+              className="w-full py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition flex items-center justify-center gap-3 disabled:opacity-50"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -430,43 +429,6 @@ export const AuthPage: React.FC = () => {
               </svg>
               Continue with Google
             </button>
-
-            {/* Demo Logins */}
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50">
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <Zap className="w-3.5 h-3.5 text-amber-500" />
-                Quick Demo Access
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('customer@tempora.io', 'customer123', 'Renter')}
-                  disabled={isSubmitting}
-                  className="py-2.5 px-2 rounded-xl bg-white dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:shadow-sm transition disabled:opacity-50"
-                >
-                  <span className="block text-lg mb-0.5">🛒</span>
-                  Renter
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('owner@tempora.io', 'owner123', 'Host')}
-                  disabled={isSubmitting}
-                  className="py-2.5 px-2 rounded-xl bg-white dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:shadow-sm transition disabled:opacity-50"
-                >
-                  <span className="block text-lg mb-0.5">🏪</span>
-                  Host
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('admin@tempora.io', 'admin123', 'Admin')}
-                  disabled={isSubmitting}
-                  className="py-2.5 px-2 rounded-xl bg-white dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-xs font-bold text-violet-700 dark:text-violet-300 hover:border-violet-400 hover:shadow-sm transition disabled:opacity-50"
-                >
-                  <span className="block text-lg mb-0.5">🛡️</span>
-                  Admin
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Bottom info */}

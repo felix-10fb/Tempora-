@@ -46,20 +46,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsLoading(false);
       }
     } else {
-      // Default to demo customer for immediate delightful exploration if none logged in
-      const defaultDemoUser: User = {
-        id: "demo-customer-uuid",
-        name: "Rahul Sundaram",
-        email: "customer@tempora.io",
-        phone: "+91 94440 98765",
-        role: "CUSTOMER",
-        is_verified: true,
-        is_active: true,
-        trust_score: 94,
-        profile_image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-        bio: "Exploring temporary living & sustainable gear in Chennai."
-      };
-      setUser(defaultDemoUser);
+      // No saved session — user must log in
+      setUser(null);
       setIsLoading(false);
     }
   }, []);
