@@ -10,7 +10,14 @@ logger = logging.getLogger("tempora.db")
 
 db_url = settings.DATABASE_URL
 if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+    db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+
+is_production = (
+    settings.ENVIRONMENT.lower() in {"prod", "production"}
+    or os.getenv("VERCEL_ENV", "").lower() in {"production", "preview"}
+)
 
 use_sqlite = False
 sqlite_db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../tempora.db"))
@@ -29,15 +36,18 @@ if "sqlite" not in db_url:
         result = sock.connect_ex((host, port))
         sock.close()
         if result != 0:
-            print(f"[!] Warning: Remote PostgreSQL {host}:{port} is unreachable on this network (code {result}). Activating local SQLite fallback.")
+            print(f"[!] Warning: Remote PostgreSQL {host}:{port} is unreachable on this network (code {result}).")
             use_sqlite = True
     except Exception as e:
-        print(f"[!] Warning: Error probing PostgreSQL host ({e}). Activating local SQLite fallback.")
+        print(f"[!] Warning: Error probing PostgreSQL host ({e}).")
         use_sqlite = True
 else:
     use_sqlite = True
 
-# 2. Attempt remote PostgreSQL connection; if verification query fails, fall back to SQLite
+if use_sqlite and is_production:
+    raise RuntimeError("PostgreSQL is required in production; refusing to use ephemeral SQLite.")
+
+# 2. Verify the PostgreSQL connection before allowing development fallback.
 if not use_sqlite:
     try:
         if "sslmode=" not in db_url:
@@ -64,8 +74,11 @@ if not use_sqlite:
             test_conn.execute(text("SELECT 1"))
         print("[+] Verified database connection: Remote PostgreSQL (Neon).")
     except Exception as e:
-        print(f"[!] Warning: Remote PostgreSQL connection verification failed ({e}). Activating local SQLite fallback.")
+        print(f"[!] Warning: Remote PostgreSQL connection verification failed ({e}).")
         use_sqlite = True
+
+if use_sqlite and is_production:
+    raise RuntimeError("PostgreSQL connection failed in production; refusing to use ephemeral SQLite.")
 
 if use_sqlite:
     db_url = sqlite_url
