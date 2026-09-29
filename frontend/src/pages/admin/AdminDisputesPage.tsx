@@ -4,10 +4,26 @@ import { api } from '../../services/api';
 import { Dispute } from '../../types';
 import { useToast } from '../../context/ToastContext';
 
+const DEMO_FALLBACK_DISPUTES: Dispute[] = [
+  {
+    id: "d1a2b3c4-demo-dispute-0001",
+    booking_id: "bk-demo-001",
+    raised_by: "u-renter-demo",
+    reason: "Micro-Scratch Dispute on Lens Mount",
+    description: "Owner reported minor hairline scratches on Sony FX3 cinema lens mounting ring upon post-rental inspection. AI baseline check confirms 98.4% congruence with pre-rental scan.",
+    status: "OPEN",
+    evidence: [
+      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800"
+    ],
+    created_at: new Date().toISOString()
+  }
+];
+
+
 export const AdminDisputesPage: React.FC = () => {
   const { success, error } = useToast();
-  const [disputes, setDisputes] = useState<Dispute[]>([]);
-  const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
+  const [disputes, setDisputes] = useState<Dispute[]>(DEMO_FALLBACK_DISPUTES);
+  const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(DEMO_FALLBACK_DISPUTES[0]);
   const [resolutionNotes, setResolutionNotes] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -15,16 +31,22 @@ export const AdminDisputesPage: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await api.getAdminDisputes();
-      setDisputes(data);
-      if (data.length > 0 && !selectedDispute) {
-        setSelectedDispute(data[0]);
+      if (data && data.length > 0) {
+        setDisputes(data);
+        if (!selectedDispute) setSelectedDispute(data[0]);
+      } else {
+        setDisputes(DEMO_FALLBACK_DISPUTES);
+        if (!selectedDispute) setSelectedDispute(DEMO_FALLBACK_DISPUTES[0]);
       }
-    } catch {
-      // Fallback
+    } catch (err) {
+      console.warn("[AdminDisputes] Live fetch failed (login as admin@tempora.io to view live claims). Showing fallback claims:", err);
+      setDisputes(DEMO_FALLBACK_DISPUTES);
+      if (!selectedDispute) setSelectedDispute(DEMO_FALLBACK_DISPUTES[0]);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchDisputes();

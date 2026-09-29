@@ -4,7 +4,11 @@ import {
   MessageItem, Category, TamilNaduPincode, NavigationRoute
 } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  typeof window !== 'undefined' && (window.location.port === '5173' || window.location.port === '5174')
+    ? '/api'
+    : 'http://127.0.0.1:8000/api'
+);
 
 class ApiService {
   private getHeaders(): HeadersInit {
@@ -32,10 +36,14 @@ class ApiService {
 
       return await response.json();
     } catch (err: any) {
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        console.warn(`[TEMPORA API] Cannot reach backend at ${url}. Ensure FastAPI is running on port 8000.`);
+      }
       console.error(`API Error on [${options.method || 'GET'} ${endpoint}]:`, err);
       throw err;
     }
   }
+
 
   // ----------------- Auth -----------------
   async login(email: string, password: string): Promise<{ access_token: string; refresh_token: string; user: User }> {

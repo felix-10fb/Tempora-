@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
+import { api } from '../../services/api';
 
 interface CategoryItem {
   name: string;
@@ -9,59 +10,89 @@ interface CategoryItem {
   tagline: string;
 }
 
+const DEFAULT_CATEGORIES: CategoryItem[] = [
+  {
+    name: "Furniture",
+    count: "180+ Items",
+    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+    tagline: "Ergonomics, Living Suites & Beds"
+  },
+  {
+    name: "Clothing",
+    count: "95+ Outfits",
+    image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800",
+    tagline: "Tailored Suits, Lehengas & Tuxedos"
+  },
+  {
+    name: "Cameras & Creator Equipment",
+    count: "60+ Rigs",
+    image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800",
+    tagline: "Sony FX3, Primes, Gimbals & Sound"
+  },
+  {
+    name: "Electronics",
+    count: "120+ Devices",
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800",
+    tagline: "MacBooks, 5K Displays & PS5"
+  },
+  {
+    name: "Appliances",
+    count: "75+ Units",
+    image: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=800",
+    tagline: "Double Door Fridges, Washers & ACs"
+  },
+  {
+    name: "Sports Equipment",
+    count: "45+ Kits",
+    image: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800",
+    tagline: "Mountain Bikes, Trekking & Golf"
+  },
+  {
+    name: "Event Equipment",
+    count: "35+ Systems",
+    image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800",
+    tagline: "PartyBox Sound, Fog & Stage Lights"
+  },
+  {
+    name: "Study/Office Equipment",
+    count: "50+ Setups",
+    image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800",
+    tagline: "Standing Desks, Whiteboards & Chairs"
+  }
+];
+
 export const CategoryGrid: React.FC = () => {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<CategoryItem[]>(DEFAULT_CATEGORIES);
 
-  const categories: CategoryItem[] = [
-    {
-      name: "Furniture",
-      count: "180+ Items",
-      image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
-      tagline: "Ergonomics, Living Suites & Beds"
-    },
-    {
-      name: "Clothing",
-      count: "95+ Outfits",
-      image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800",
-      tagline: "Tailored Suits, Lehengas & Tuxedos"
-    },
-    {
-      name: "Cameras & Creator Equipment",
-      count: "60+ Rigs",
-      image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800",
-      tagline: "Sony FX3, Primes, Gimbals & Sound"
-    },
-    {
-      name: "Electronics",
-      count: "120+ Devices",
-      image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800",
-      tagline: "MacBooks, 5K Displays & PS5"
-    },
-    {
-      name: "Appliances",
-      count: "75+ Units",
-      image: "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=800",
-      tagline: "Double Door Fridges, Washers & ACs"
-    },
-    {
-      name: "Sports Equipment",
-      count: "45+ Kits",
-      image: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800",
-      tagline: "Mountain Bikes, Trekking & Golf"
-    },
-    {
-      name: "Event Equipment",
-      count: "35+ Systems",
-      image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800",
-      tagline: "PartyBox Sound, Fog & Stage Lights"
-    },
-    {
-      name: "Study/Office Equipment",
-      count: "50+ Setups",
-      image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=800",
-      tagline: "Standing Desks, Whiteboards & Chairs"
-    }
-  ];
+  useEffect(() => {
+    api.getCategories()
+      .then((dbCategories) => {
+        if (dbCategories && dbCategories.length > 0) {
+          // Merge database categories with curated details
+          const merged = dbCategories
+            .filter((c) => c.name.toLowerCase() !== "other")
+            .map((cat) => {
+              const fallback = DEFAULT_CATEGORIES.find(
+                (c) => c.name.toLowerCase() === cat.name.toLowerCase()
+              );
+              return {
+                name: cat.name,
+                count: fallback?.count || "Available Now",
+                image: cat.image_url || fallback?.image || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800",
+                tagline: cat.description || fallback?.tagline || "Verified Hyperlocal Gear"
+              };
+            });
+          if (merged.length > 0) {
+            setCategories(merged);
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn("[CategoryGrid] Using offline categories fallback:", err);
+      });
+  }, []);
+
 
   return (
     <section className="py-16">

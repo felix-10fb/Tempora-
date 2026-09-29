@@ -24,10 +24,12 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Structured Error Handlers (Rule 35)
 @app.exception_handler(StarletteHTTPException)
@@ -83,9 +85,17 @@ app.include_router(maps.router, prefix="/api")
 
 @app.get("/api/health")
 def health_check():
+    from backend.app.core.database import check_db_health
+    db_ok, db_status, db_type = check_db_health()
     return {
-        "status": "healthy",
+        "status": "healthy" if db_ok else "degraded",
+        "database": {
+            "status": db_status,
+            "type": db_type,
+            "healthy": db_ok
+        },
         "service": "TEMPORA API",
         "version": "1.0.0",
         "philosophy": "Why buy something you only need temporarily? Own Less. Live More."
     }
+
