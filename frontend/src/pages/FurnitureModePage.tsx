@@ -15,13 +15,90 @@ export const FurnitureModePage: React.FC = () => {
   const homeTypes = ["Studio", "1BHK", "2BHK", "PG / Shared", "Private Office"];
   const styles = ["Modern", "Minimal", "Luxury", "Scandinavian", "Industrial"];
 
+  const buildDemoPackage = () => {
+    const styleMap: Record<string, { package_name: string; summary: string; total: number; items: any[]; services: string[] }> = {
+      Modern: {
+        package_name: 'Modern Move-In Suite',
+        summary: 'Clean geometry, warm neutrals and compact luxury tailored for a polished day-to-day life.',
+        total: 17600,
+        items: [
+          { category: 'Living', title: 'L-shaped Sofa', price_per_month: 4200, image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Bedroom', title: 'Queen Bed Frame', price_per_month: 3500, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Dining', title: 'Compact Dining Set', price_per_month: 2800, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Workspace', title: 'Foldable Desk & Chair', price_per_month: 2100, image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80' }
+        ],
+        services: ['White-glove delivery', 'Assembly & setup', 'Deep clean before handoff', 'Flexible swap-outs']
+      },
+      Minimal: {
+        package_name: 'Light Minimal Home',
+        summary: 'Quiet textures and toned-down pieces create a calming, uncluttered living environment.',
+        total: 15200,
+        items: [
+          { category: 'Living', title: 'Low Profile Lounge Chair', price_per_month: 3100, image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Bedroom', title: 'Minimal Platform Bed', price_per_month: 3300, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Storage', title: 'Sliding Wardrobe', price_per_month: 4200, image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Workspace', title: 'Ergonomic Desk', price_per_month: 2200, image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80' }
+        ],
+        services: ['Setup & styling', 'Damage coverage', 'Monthly refresh', 'Pickup coordination']
+      },
+      Luxury: {
+        package_name: 'Boutique Luxury Suite',
+        summary: 'Layered premium materials and rich tones for a high-end temporary home experience.',
+        total: 22400,
+        items: [
+          { category: 'Living', title: 'Luxury Sectional Sofa', price_per_month: 6200, image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Bedroom', title: 'Tufted Storage Bed', price_per_month: 5000, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Dining', title: 'Marble Dining Table', price_per_month: 4200, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Decor', title: 'Accent Lighting Bundle', price_per_month: 2800, image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=900&q=80' }
+        ],
+        services: ['Interior styling consult', 'Premium delivery', 'Tension-free assembly', 'Premium care support']
+      },
+      Scandinavian: {
+        package_name: 'Nordic Calm Home',
+        summary: 'Bright finishes, function-first storage, and cozy textures for airy, comfortable spaces.',
+        total: 16800,
+        items: [
+          { category: 'Living', title: 'Soft Linen Sofa', price_per_month: 3900, image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Bedroom', title: 'Natural Oak Bed', price_per_month: 3400, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Storage', title: 'Oak Console Unit', price_per_month: 2800, image: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Lighting', title: 'Warm Ambient Set', price_per_month: 1900, image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=900&q=80' }
+        ],
+        services: ['Compact room optimization', 'Delivery with placement', 'Style-ready decluttering', 'Flexible renewal']
+      },
+      Industrial: {
+        package_name: 'Industrial Loft Kit',
+        summary: 'Textured palettes and utility pieces create a durable, urban, and expressive feel.',
+        total: 18400,
+        items: [
+          { category: 'Living', title: 'Metal Frame Sofa', price_per_month: 4700, image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Bedroom', title: 'Industrial Bed Set', price_per_month: 3600, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Dining', title: 'Rustic Table Set', price_per_month: 3300, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Decor', title: 'Metal Accent Bundle', price_per_month: 2100, image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=900&q=80' }
+        ],
+        services: ['Setup with industrial-grade fixtures', 'Damage protection', 'Responsive swap support', 'Fast pickup scheduling']
+      }
+    };
+
+    const preset = styleMap[style] || styleMap.Modern;
+    const monthlyTotal = Math.max(9000, Math.round((preset.total + duration * 800) / 100) * 100);
+
+    return {
+      style,
+      package_name: preset.package_name,
+      total_monthly_rate: monthlyTotal,
+      items: preset.items,
+      included_services: preset.services,
+      summary: preset.summary
+    };
+  };
+
   const generatePackage = async () => {
     setIsOrdered(false);
     try {
       const data = await api.getFurnitureHome(homeType, duration, style);
       setPackageData(data);
     } catch {
-      // Fallback
+      setPackageData(buildDemoPackage());
     }
   };
 
@@ -153,6 +230,10 @@ export const FurnitureModePage: React.FC = () => {
                 </button>
               )}
             </div>
+          </div>
+
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+            Local demo data is active because the backend is not connected on this host. The original Vercel version stays cleaner when the API is live.
           </div>
 
           {/* Package items */}

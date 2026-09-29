@@ -24,6 +24,76 @@ export const ClothingModePage: React.FC = () => {
 
   const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
 
+  const buildDemoLook = () => {
+    const occasionMap: Record<string, { title: string; note: string; total: number; items: any[] }> = {
+      "Job Interview": {
+        title: "Executive Confidence Edit",
+        note: "Sharp tailoring, premium fabric texture, and understated polish for a high-impact first impression.",
+        total: 1480,
+        items: [
+          { category: 'Suit', title: 'Charcoal Slim Fit Blazer', price_per_day: 620, image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Shirt', title: 'Cotton White Structured Shirt', price_per_day: 260, image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Accessories', title: 'Leather Oxford Shoes', price_per_day: 600, image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=900&q=80' }
+        ]
+      },
+      "Wedding & Reception": {
+        title: "Royal Celebration Look",
+        note: "Elegant layering, rich jewel tones, and statement detailing designed for a festive evening.",
+        total: 2120,
+        items: [
+          { category: 'Ensemble', title: 'Ivory Bandhgala Jacket', price_per_day: 820, image: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Bottom', title: 'Tailored Satin Trouser', price_per_day: 510, image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Accessories', title: 'Gold Statement Set', price_per_day: 790, image: 'https://images.unsplash.com/photo-1617038220319-276d3cfab638?auto=format&fit=crop&w=900&q=80' }
+        ]
+      },
+      "Gala & Black Tie": {
+        title: "Black Tie Signature",
+        note: "A polished silhouette with luxe textures and a dramatic finish for evening occasions.",
+        total: 2400,
+        items: [
+          { category: 'Suit', title: 'Midnight Tuxedo Set', price_per_day: 930, image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Dress Shirt', title: 'Crisp Pleated Dress Shirt', price_per_day: 320, image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Accessories', title: 'Patent Leather Formal Shoes', price_per_day: 1150, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80' }
+        ]
+      },
+      "Cocktail Party": {
+        title: "After Dark Edit",
+        note: "Modern styling with texture contrast and a little extra shine for social evenings.",
+        total: 1680,
+        items: [
+          { category: 'Co-ord', title: 'Deep Velvet Co-ord Set', price_per_day: 700, image: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Footwear', title: 'Statement Heels', price_per_day: 420, image: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Accessories', title: 'Metallic Evening Clutch', price_per_day: 560, image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80' }
+        ]
+      },
+      "Weekend Photoshoot": {
+        title: "Content Creator Capsule",
+        note: "Lightweight, camera-ready layering that looks premium in every frame and still feels effortless.",
+        total: 1360,
+        items: [
+          { category: 'Dress', title: 'Structured Satin Midi Dress', price_per_day: 620, image: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Layer', title: 'Neutral Overshirt', price_per_day: 290, image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80' },
+          { category: 'Accessories', title: 'Minimalist Heels', price_per_day: 450, image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=900&q=900&q=80' }
+        ]
+      }
+    };
+
+    const preset = occasionMap[occasion] || occasionMap['Job Interview'];
+    const adjustedTotal = Math.max(900, Math.min(4000, Math.round(preset.total + (budget - 1500) / 12)));
+
+    return {
+      look_title: preset.title,
+      ai_stylist_notes: preset.note,
+      total_day_rate: adjustedTotal,
+      items: preset.items.map((item, idx) => ({
+        ...item,
+        category: item.category,
+        title: item.title,
+        price_per_day: idx === 0 ? Math.round(item.price_per_day * (1 + (budget - 1200) / 8000)) : item.price_per_day
+      }))
+    };
+  };
+
   const generateLook = async () => {
     setIsLoading(true);
     setIsOrdered(false);
@@ -31,7 +101,7 @@ export const ClothingModePage: React.FC = () => {
       const data = await api.getClothingLook(occasion, gender, budget);
       setLookData(data);
     } catch {
-      // Fallback
+      setLookData(buildDemoLook());
     } finally {
       setIsLoading(false);
     }
@@ -216,6 +286,12 @@ export const ClothingModePage: React.FC = () => {
             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>All items are dry-cleaned, UV-sanitized, and sealed in eco-friendly garment bags before dispatch.</span>
           </div>
+
+          {!isLoading && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+              Local demo data is active because the backend is not connected on this host. The original Vercel experience is still available when the API is online.
+            </div>
+          )}
         </div>
       )}
 
