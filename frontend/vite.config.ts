@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react' // Ensure this plugin import is present
+import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+// https://vite.dev
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -20,6 +20,8 @@ export default defineConfig({
     }
   },
   build: {
+    // Adjust the chunk size warning limit here (value is in kB)
+    chunkSizeWarningLimit: 1000, 
     rollupOptions: {
       output: {
         manualChunks(id) {
