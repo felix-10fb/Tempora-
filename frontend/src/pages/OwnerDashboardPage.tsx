@@ -38,83 +38,97 @@ export const OwnerDashboardPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       
-      {/* Top Banner with Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-            Owner Earnings & Fleet Management
-          </span>
-          <h1 className="font-display font-black text-3xl sm:text-4xl text-slate-900 dark:text-white mt-1">
-            Owner Platform
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Monitor asset utilization, incoming rental requests, and escrow payouts.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/add-listing')}
-            className="px-5 py-3 rounded-2xl font-extrabold text-xs text-white bg-emerald-600 hover:bg-emerald-500 shadow-glow-emerald transition flex items-center gap-2"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>List New Item</span>
-          </button>
+      {/* ━━━ OWNER PLATFORM HEADER ━━━ */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-br from-violet-700 via-indigo-700 to-violet-800 text-white shadow-glow-violet relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-1/3 translate-x-1/4" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/3 -translate-x-1/4" />
+        
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-violet-200 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full border border-white/15 mb-3">
+              <BarChart3 className="w-3 h-3" /> Owner Earnings & Fleet Management
+            </span>
+            <h1 className="font-display font-black text-3xl sm:text-4xl">
+              Owner Platform
+            </h1>
+            <p className="text-sm text-violet-200 mt-1 max-w-xl">
+              Monitor asset utilization, incoming rental requests, and escrow payouts across your inventory.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/add-listing')}
+              className="px-5 py-3 rounded-2xl font-extrabold text-xs text-violet-700 bg-white hover:bg-violet-50 shadow-sm transition flex items-center gap-2"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>List New Item</span>
+            </button>
+            <button
+              onClick={() => navigate('/search')}
+              className="px-5 py-3 rounded-2xl font-bold text-xs text-white bg-white/15 border border-white/20 hover:bg-white/25 transition backdrop-blur-sm"
+            >
+              View Marketplace
+            </button>
+          </div>
         </div>
       </div>
 
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="p-6 rounded-3xl glass-panel border border-slate-200 dark:border-slate-800">
-          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-            <span>Total Revenue</span>
-            <DollarSign className="w-4 h-4 text-emerald-500" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-emerald-600" />
+            </span>
+            <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <TrendingUp className="w-3 h-3" /> +24%
+            </span>
           </div>
           <p className="font-display font-black text-3xl text-slate-900 dark:text-white">
             ₹{(stats?.total_revenue || 66000).toLocaleString()}
           </p>
-          <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1 mt-2">
-            <TrendingUp className="w-3.5 h-3.5" /> +24% from last month
-          </span>
+          <p className="text-xs text-slate-500 mt-0.5">Total Revenue</p>
         </div>
 
-        <div className="p-6 rounded-3xl glass-panel border border-slate-200 dark:border-slate-800">
-          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-            <span>Active Listings</span>
-            <Package className="w-4 h-4 text-violet-500" />
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="w-10 h-10 rounded-xl bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center">
+              <Package className="w-5 h-5 text-violet-600" />
+            </span>
+            <span className="text-[11px] font-bold text-violet-600 bg-violet-50 dark:bg-violet-950/40 px-2 py-0.5 rounded-full">
+              {stats?.active_rentals || 4} rented
+            </span>
           </div>
           <p className="font-display font-black text-3xl text-slate-900 dark:text-white">
             {stats?.active_listings || ownerListings.length || 6}
           </p>
-          <span className="text-[11px] text-slate-400 mt-2 block">
-            {stats?.active_rentals || 4} currently out on rental
-          </span>
+          <p className="text-xs text-slate-500 mt-0.5">Active Listings</p>
         </div>
 
-        <div className="p-6 rounded-3xl glass-panel border border-slate-200 dark:border-slate-800">
-          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-            <span>Asset Utilization</span>
-            <BarChart3 className="w-4 h-4 text-blue-500" />
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-blue-600" />
+            </span>
+            <span className="text-[11px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-full">Optimal</span>
           </div>
           <p className="font-display font-black text-3xl text-slate-900 dark:text-white">
             {stats?.utilization_rate || 74.5}%
           </p>
-          <span className="text-[11px] font-semibold text-emerald-600 mt-2 block">
-            Optimal capital efficiency
-          </span>
+          <p className="text-xs text-slate-500 mt-0.5">Asset Utilization</p>
         </div>
 
-        <div className="p-6 rounded-3xl glass-panel border border-slate-200 dark:border-slate-800">
-          <div className="flex items-center justify-between text-slate-500 text-xs mb-2">
-            <span>Owner Rating</span>
-            <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+        <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center">
+              <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+            </span>
+            <span className="text-[11px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full">Top 5%</span>
           </div>
           <p className="font-display font-black text-3xl text-slate-900 dark:text-white">
-            {stats?.average_rating || 4.9} / 5.0
+            {stats?.average_rating || 4.9}/5.0
           </p>
-          <span className="text-[11px] text-emerald-600 font-semibold mt-2 block">
-            Top 5% Superhost in Chennai
-          </span>
+          <p className="text-xs text-slate-500 mt-0.5">Superhost Rating</p>
         </div>
       </div>
 
