@@ -61,3 +61,6 @@ Thumbs.db
 # Production build outputs
 frontend/dist/
 frontend/build/
+*.db
+*.sqlite3
+

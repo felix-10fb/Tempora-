@@ -15,8 +15,10 @@ export const AddListingWizardPage: React.FC = () => {
   const [step, setStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // Form State
-  const [photoUrl, setPhotoUrl] = useState<string>("https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800");
+  // Form State with Multi-File Selection
+  const [images, setImages] = useState<string[]>([
+    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800"
+  ]);
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [category, setCategory] = useState<string>("Furniture");
@@ -26,6 +28,27 @@ export const AddListingWizardPage: React.FC = () => {
   const [deposit, setDeposit] = useState<number>(3000);
   const [location, setLocation] = useState<string>("Adyar, Chennai");
   const [deliveryAvailable, setDeliveryAvailable] = useState<boolean>(true);
+
+  // Handle local file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const fileList = Array.from(e.target.files);
+
+    fileList.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setImages((prev) => [...prev, event.target!.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    toast(`Added ${fileList.length} image(s) from your device!`, "success");
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    setImages((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
 
   // AI Pre-scan condition preview
   const [aiScore] = useState<number>(94);
@@ -46,6 +69,10 @@ export const AddListingWizardPage: React.FC = () => {
       toast("Please enter a title and description", "error");
       return;
     }
+    if (images.length === 0) {
+      toast("Please upload at least one photo of your item", "error");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -62,7 +89,7 @@ export const AddListingWizardPage: React.FC = () => {
         latitude: 13.0012,
         longitude: 80.2565,
         delivery_available: deliveryAvailable,
-        images: [photoUrl]
+        images: images
       });
 
       success("Listing published successfully!");
@@ -101,40 +128,87 @@ export const AddListingWizardPage: React.FC = () => {
       {/* Form Content */}
       <div className="glass-panel p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-elevated">
         
-        {/* STEP 1: PHOTOS */}
+        {/* STEP 1: FILE SELECTION PHOTOS */}
         {step === 1 && (
           <div className="space-y-6 animate-fade-in">
             <div>
               <h2 className="font-display font-black text-2xl text-slate-900 dark:text-white">
-                Upload Listing Imagery
+                Select & Upload Item Photos
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                Provide high-resolution photos. TEMPORA AI uses these to calculate your Condition Baseline Score.
+                Choose files directly from your computer or phone. Upload multiple angles for optimal AI condition inspection.
               </p>
             </div>
 
-            <div className="aspect-video w-full rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex flex-col items-center justify-center relative">
-              {photoUrl ? (
-                <img src={photoUrl} alt="Preview" className="w-full h-full object-cover" />
+            {/* Hidden Native File Input */}
+            <input
+              type="file"
+              id="file-photo-input"
+              multiple
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+
+            {/* Click to Select Files Dropzone */}
+            <label
+              htmlFor="file-photo-input"
+              className="cursor-pointer border-2 border-dashed border-emerald-500/50 hover:border-emerald-500 bg-emerald-50/30 dark:bg-emerald-950/20 hover:bg-emerald-50/60 dark:hover:bg-emerald-950/40 p-8 rounded-3xl flex flex-col items-center justify-center text-center transition group"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition shadow-glow-emerald mb-3">
+                <Upload className="w-7 h-7" />
+              </div>
+              <p className="font-display font-bold text-base text-slate-900 dark:text-white">
+                Click to Select Photos from Device
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Supports JPG, PNG, WEBP • Select multiple files at once
+              </p>
+              <span className="mt-3 px-4 py-1.5 rounded-full bg-emerald-600 text-white font-extrabold text-[11px] shadow-sm">
+                Browse Files
+              </span>
+            </label>
+
+            {/* Uploaded Photos Preview Grid */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-xs font-bold uppercase text-slate-400">
+                  Uploaded Photos ({images.length})
+                </label>
+                <span className="text-[11px] text-emerald-600 font-semibold">
+                  First photo is used as cover
+                </span>
+              </div>
+
+              {images.length === 0 ? (
+                <p className="text-xs text-slate-400 italic">No photos uploaded yet.</p>
               ) : (
-                <div className="text-center p-6">
-                  <Upload className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Enter image URL</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      className="relative group rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700 aspect-square bg-slate-100 dark:bg-slate-800"
+                    >
+                      <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
+                      
+                      {idx === 0 && (
+                        <div className="absolute top-2 left-2 bg-emerald-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow">
+                          Cover
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => removeImage(idx)}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-red-600 transition shadow"
+                        title="Remove photo"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-400 mb-1.5">
-                Image Web Link
-              </label>
-              <input
-                type="text"
-                value={photoUrl}
-                onChange={(e) => setPhotoUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
-                className="w-full p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium focus:ring-2 focus:ring-emerald-500"
-              />
             </div>
           </div>
         )}

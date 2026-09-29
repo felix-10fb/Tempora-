@@ -206,3 +206,20 @@ export interface ConversationItem {
   latest_message?: MessageItem;
   unread_count: number;
 }
+
+export interface TamilNaduPincode {
+  pincode: string;
+  area: string;
+  district: string;
+  lat: number;
+  lng: number;
+}
+
+export interface NavigationRoute {
+  distance_km: number;
+  eta_minutes: number;
+  traffic_condition: string;
+  waypoints: Array<{ lat: number; lng: number }>;
+  directions: string[];
+}
+

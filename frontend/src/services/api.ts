@@ -1,7 +1,7 @@
 import {
   User, Listing, Booking, Review, AISetupBundleResponse,
   AIInspectionResponse, Dispute, NotificationItem, ConversationItem,
-  MessageItem, Category
+  MessageItem, Category, TamilNaduPincode, NavigationRoute
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -314,6 +314,25 @@ class ApiService {
   }
 
   // ----------------- Maps & Delivery -----------------
+  async getTamilNaduPincodes(query?: string, district?: string): Promise<TamilNaduPincode[]> {
+    const params = new URLSearchParams();
+    if (query) params.append('query', query);
+    if (district) params.append('district', district);
+    return this.request(`/maps/pincodes/tn?${params.toString()}`);
+  }
+
+  async getNavigationRoute(originLat: number, originLng: number, destLat: number, destLng: number): Promise<NavigationRoute> {
+    return this.request('/maps/navigate', {
+      method: 'POST',
+      body: JSON.stringify({
+        origin_lat: originLat,
+        origin_lng: originLng,
+        dest_lat: destLat,
+        dest_lng: destLng
+      })
+    });
+  }
+
   async calculateDelivery(pickupLat: number, pickupLng: number, dropLat: number, dropLng: number): Promise<any> {
     return this.request('/maps/calculate-delivery', {
       method: 'POST',

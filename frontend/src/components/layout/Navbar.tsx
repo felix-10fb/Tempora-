@@ -3,9 +3,10 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Sparkles, Search, PlusCircle, Bell, User as UserIcon,
   ShieldCheck, Heart, MessageSquare, LayoutDashboard,
-  LogOut, Moon, Sun, Layers, Compass, ChevronDown, Check
+  LogOut, Moon, Sun, Layers, Compass, ChevronDown, Check, LogIn
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { AuthModal } from '../auth/AuthModal';
 
 export const Navbar: React.FC = () => {
   const { user, logout, switchRole, isAdmin, isOwner } = useAuth();
@@ -14,6 +15,8 @@ export const Navbar: React.FC = () => {
   const [isDark, setIsDark] = useState<boolean>(false);
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState<boolean>(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -256,7 +259,19 @@ export const Navbar: React.FC = () => {
                     </Link>
                   </div>
 
-                  <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
+                  <div className="pt-1 border-t border-slate-100 dark:border-slate-800 space-y-1">
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        setAuthMode('login');
+                        setIsAuthModalOpen(true);
+                      }}
+                      className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      Sign In / Switch User
+                    </button>
+
                     <button
                       onClick={() => {
                         logout();
@@ -276,6 +291,13 @@ export const Navbar: React.FC = () => {
 
         </div>
       </div>
+
+      {/* Interactive Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode={authMode}
+      />
     </header>
   );
 };
